@@ -1,5 +1,5 @@
 import pytest
-import requests
+from lib.my_requests import MyRequests
 from lib.base_case import BaseCase
 from lib.assertions import Assertions
 from datetime import datetime
@@ -23,7 +23,7 @@ class TestUserRegister(BaseCase):
             'email': self.email
         }
 
-        response = requests.post("https://playground.learnqa.ru/api/user/", data=data)
+        response = MyRequests.post("/user/", data=data)
         Assertions.assert_code_status(response, 200)
         Assertions.assert_json_has_key(response, "id")
 
@@ -38,7 +38,7 @@ class TestUserRegister(BaseCase):
             'email': email
         }
 
-        response = requests.post("https://playground.learnqa.ru/api/user/", data=data)
+        response = MyRequests.post("/user/", data=data)
 
         Assertions.assert_code_status(response, 400)
         assert response.content.decode("utf-8") == f"Users with email '{email}' already exists", \
@@ -55,7 +55,7 @@ class TestUserRegister(BaseCase):
             'email': email
         }
 
-        response = requests.post("https://playground.learnqa.ru/api/user/", data=data)
+        response = MyRequests.post("/user/", data=data)
 
         Assertions.assert_code_status(response, 400)
         Assertions.assert_content_decode(response, "Invalid email format")
@@ -81,31 +81,31 @@ class TestUserRegister(BaseCase):
 
         if condition == "no_password":
             data.pop("password")
-            response = requests.post("https://playground.learnqa.ru/api/user/", data=data)
+            response = MyRequests.post("/user/", data=data)
             Assertions.assert_code_status(response, 400)
             Assertions.assert_content_decode(response, "The following required params are missed: password")
 
         elif condition == "no_username":
             data.pop("username")
-            response = requests.post("https://playground.learnqa.ru/api/user/", data=data)
+            response = MyRequests.post("/user/", data=data)
             Assertions.assert_code_status(response, 400)
             Assertions.assert_content_decode(response, "The following required params are missed: username")
 
         elif condition == "no_firstName":
             data.pop("firstName")
-            response = requests.post("https://playground.learnqa.ru/api/user/", data=data)
+            response = MyRequests.post("/user/", data=data)
             Assertions.assert_code_status(response, 400)
             Assertions.assert_content_decode(response, "The following required params are missed: firstName")
 
         elif condition == "no_lastName":
             data.pop("lastName")
-            response = requests.post("https://playground.learnqa.ru/api/user/", data=data)
+            response = MyRequests.post("/user/", data=data)
             Assertions.assert_code_status(response, 400)
             Assertions.assert_content_decode(response, "The following required params are missed: lastName")
 
         elif condition == "no_email":
             data.pop("email")
-            response = requests.post("https://playground.learnqa.ru/api/user/", data=data)
+            response = MyRequests.post("/user/", data=data)
             Assertions.assert_code_status(response, 400)
             Assertions.assert_content_decode(response, "The following required params are missed: email")
 
@@ -120,7 +120,7 @@ class TestUserRegister(BaseCase):
             'lastName': 'learnqa',
             'email': self.email
         }
-        response = requests.post("https://playground.learnqa.ru/api/user/", data=data)
+        response = MyRequests.post("/user/", data=data)
         Assertions.assert_code_status(response, 400)
         Assertions.assert_content_decode(response, "The value of 'username' field is too short")
 
@@ -134,7 +134,7 @@ class TestUserRegister(BaseCase):
                 'lastName': 'learnqa',
                 'email': self.email
         }
-        response = requests.post("https://playground.learnqa.ru/api/user/", data=data)
+        response = MyRequests.post("/user/", data=data)
         Assertions.assert_code_status(response, 400)
         Assertions.assert_content_decode(response, "The value of 'username' field is too long")
 
