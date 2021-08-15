@@ -1,30 +1,59 @@
 import requests
+import pytest
 import json
 from lib.base_case import BaseCase
 from lib.assertions import Assertions
 from lib.my_requests import MyRequests
 from lib.fun import MyFun
 import time
+import random
+import string
 
 class TestUserEdit(BaseCase):
+    exclude_params = [
+        ("change_name"),
+        ("change_name_to_1_char")
+    ]
 
-    def test_edit_just_created_user(self):
+#   Попытаемся изменить firstName пользователя, будучи авторизованными тем же пользователем (positive)
+#   Попытаемся изменить firstName пользователя, будучи авторизованными тем же пользователем,
+    #   на очень короткое значение в один символ (negative)
+    @pytest.mark.parametrize('condition', exclude_params)
+    def test_edit_just_created_user(self, condition):
 #       Look at lib/fun.py
         MyFun.register(self)
 
         MyFun.login(self, self.email, self.password)
 
-        new_name = "Changed Name"
-        MyFun.edit(self, new_name, self.user_id, self.auth_sid, self.token)
-        Assertions.assert_code_status(self.response3, 200)
+        if condition == "change_name":
+            new_name = "Changed Name"
+            MyFun.edit(self, new_name, self.user_id, self.auth_sid, self.token)
+            Assertions.assert_code_status(self.response3, 200)
 
-        MyFun.get_user(self, self.user_id, self.auth_sid, self.token)
-        Assertions.assert_json_value_by_name(
-            self.response4,
-            "firstName",
-            new_name,
-            "Wrong name of the user after edit"
-        )
+            MyFun.get_user(self, self.user_id, self.auth_sid, self.token)
+            Assertions.assert_json_value_by_name(
+                self.response4,
+                "firstName",
+                new_name,
+                "Wrong name of the user after edit"
+            )
+        elif condition == "change_name_to_1_char":
+            new_name = ''.join(random.choice(string.ascii_lowercase) for _ in range(1))
+
+            MyFun.edit(self, new_name, self.user_id, self.auth_sid, self.token)
+            Assertions.assert_code_status(self.response3, 400)
+            expected_content={"error":"Too short value for field firstName"}
+            Assertions.assert_decode_as_json(self.response3, "error", expected_content, f"No {expected_content} in response")
+
+            MyFun.get_user(self, self.user_id, self.auth_sid, self.token)
+            Assertions.assert_json_value_by_name(
+                self.response4,
+                "firstName",
+                self.first_name,
+                "Wrong name of the user after edit"
+            )
+
+
 
 #   Попытаемся изменить данные пользователя, будучи неавторизованными
     def test_edit_just_created_user_no_auth(self):
@@ -81,32 +110,28 @@ class TestUserEdit(BaseCase):
 
 #       Name changes for first
 
-    def test_test(self):
-        # REGISTER
-        register_data = self.prepare_registration_data()
-        response1 = MyRequests.post("/user/", data=register_data)
 
-        Assertions.assert_code_status(response1, 200)
-        Assertions.assert_json_has_key(response1, "id")
+    def test_edit_just_created_user_as_same_user_without_at(self):
 
-        email_1 = register_data['email']
-        first_name_1 = register_data['firstName']
-        password_1 = register_data['password']
-        user_id_1 = self.get_json_value(response1, "id")
+        MyFun.register(self)
+        email_1 = self.email
 
-        # REGISTER
-        register_data = self.prepare_registration_data()
-        response1 = MyRequests.post("/user/", data=register_data)
+        MyFun.login(self, self.email, self.password)
 
-        Assertions.assert_code_status(response1, 200)
-        Assertions.assert_json_has_key(response1, "id")
+        new_email= email_1.replace('@', '')
+        response3 = MyRequests.put(
+            f"/user/{self.user_id}",
+            headers={"x-csrf-token": self.token},
+            cookies={"auth_sid": self.auth_sid},
+            data={"email": new_email}
+        )
+        Assertions.assert_code_status(response3, 400)
+        Assertions.assert_content_decode(response3, "Invalid email format")
 
-        email_2 = register_data['email']
-        first_name_2 = register_data['firstName']
-        password_2 = register_data['password']
-        user_id_2 = self.get_json_value(response1, "id")
-
-        print(user_id_1, user_id_2)
+        MyFun.get_user(self, self.user_id, self.auth_sid, self.token)
+        expected_content={"id":f"{self.user_id}","username":"learnqa","email":f"{email_1}","firstName":"learnqa","lastName":"learnqa"}
+        obj_json = json.loads(self.response4.content.decode("utf-8"))
+        assert obj_json == expected_content, f"Request decoded JSON is not the same with expected_content. There is {obj_json}"
 
 
 
