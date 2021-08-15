@@ -17,7 +17,7 @@ class TestUserAuth(BaseCase):
             'password':'1234'
         }
 
-
+        response1 = MyRequests.post("/user/login", data=data)
 
         self.auth_sid = self.get_cookie(response1, "auth_sid")
         self.token = self.get_header(response1, "x-csrf-token")
