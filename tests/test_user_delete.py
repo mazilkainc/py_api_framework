@@ -6,6 +6,8 @@ from lib.my_requests import MyRequests
 from datetime import datetime
 import random
 import string
+import allure
+
 
 class TestUserDelete(BaseCase):
 
@@ -32,6 +34,9 @@ class TestUserDelete(BaseCase):
         self.random_part = datetime.now().strftime("%m%d%Y%H%M%S")
         self.email = f"{self.base_part}{self.random_part}@{self.domain}"
 
+
+
+    @allure.description("This test delete user as user who can't be deleted, as the same user, as another user")
     @pytest.mark.parametrize('condition', exclude_params)
     def test_delete_user(self, condition):
 

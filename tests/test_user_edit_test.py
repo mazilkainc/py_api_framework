@@ -8,16 +8,23 @@ from lib.fun import MyFun
 import time
 import random
 import string
+import allure
 
+@allure.epic("User edit cases")
 class TestUserEdit(BaseCase):
     exclude_params = [
         ("change_name"),
         ("change_name_to_1_char")
     ]
+    TEST_CASE_LINK = 'https://www.gurock.com/testrail/'
 
 #   Попытаемся изменить firstName пользователя, будучи авторизованными тем же пользователем (positive)
 #   Попытаемся изменить firstName пользователя, будучи авторизованными тем же пользователем,
     #   на очень короткое значение в один символ (negative)
+    @allure.title(f"Parameterized test title: adding {exclude_params}")
+    @allure.description(f"This test change just created user first name to new name or to 1 char name")
+    @allure.testcase(TEST_CASE_LINK, 'Test case title')
+    @allure.severity(allure.severity_level.CRITICAL)
     @pytest.mark.parametrize('condition', exclude_params)
     def test_edit_just_created_user(self, condition):
 #       Look at lib/fun.py
@@ -56,6 +63,8 @@ class TestUserEdit(BaseCase):
 
 
 #   Попытаемся изменить данные пользователя, будучи неавторизованными
+    @allure.description(f"This test change just created user first name without auth")
+    @allure.severity(allure.severity_level.CRITICAL)
     def test_edit_just_created_user_no_auth(self):
         MyFun.register(self)
 
@@ -70,6 +79,9 @@ class TestUserEdit(BaseCase):
         assert obj_json == expected_content, f"Request decoded JSON is not the same with expected_content. There is {obj_json}"
 
 #    Попытаемся изменить данные пользователя, будучи авторизованными другим пользователем
+    @allure.description(f"This test change just created user first name from another user")
+    @pytest.mark.xfail(condition=lambda: True, reason='Expected no one changes his name')
+    @allure.severity(allure.severity_level.CRITICAL)
     def test_edit_just_created_user_as_another_user(self):
         MyFun.register(self)
         email_1 = self.email
@@ -110,7 +122,8 @@ class TestUserEdit(BaseCase):
 
 #       Name changes for first
 
-
+    @allure.description(f"This test change just created user email to email without '@'")
+    @allure.severity(allure.severity_level.NORMAL)
     def test_edit_just_created_user_as_same_user_without_at(self):
 
         MyFun.register(self)

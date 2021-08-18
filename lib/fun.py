@@ -2,6 +2,7 @@ import requests
 from lib.base_case import BaseCase
 from lib.assertions import Assertions
 from lib.my_requests import MyRequests
+import allure
 
 class MyFun():
     def register(self):
@@ -17,7 +18,8 @@ class MyFun():
         self.password = register_data['password']
         self.user_id = self.get_json_value(response1, "id")
 
-        return self.email, self.first_name, self.password, self.user_id
+        with allure.step(f"This step create new account {self.email, self.first_name, self.password, self.user_id}"):
+            return self.email, self.first_name, self.password, self.user_id
 
     def login(self, email, password):
         # LOGIN
@@ -30,7 +32,8 @@ class MyFun():
         response2 = MyRequests.post("/user/login", data=login_data)
         self.auth_sid = self.get_cookie(response2, "auth_sid")
         self.token = self.get_header(response2, "x-csrf-token")
-        return self.auth_sid, self.token
+        with allure.step(f"This step logins with {self.auth_sid, self.token}"):
+            return self.auth_sid, self.token
 
     def edit(self, new_name, user_id, auth_sid, token):
         # EDIT
@@ -40,7 +43,8 @@ class MyFun():
             cookies={"auth_sid": auth_sid},
             data={"firstName": new_name}
             )
-        return self.response3
+        with allure.step(f"This step edit firstName to {new_name} for user with {user_id}"):
+            return self.response3
 
     def get_user(self, user_id, auth_sid, token):
         # GET
@@ -49,4 +53,5 @@ class MyFun():
             headers={"x-csrf-token": token},
             cookies={"auth_sid": auth_sid}
         )
-        return self.response4
+        with allure.step(f"This step get info for user with {user_id}"):
+            return self.response4
